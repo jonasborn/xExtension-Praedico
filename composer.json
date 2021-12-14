@@ -1,0 +1,14 @@
+{
+    "name": "dde/praedico",
+    "description": "A free, self-hostable aggregator",
+    "type": "project",
+    "homepage": "https://freshrss.org/",
+    "license": "AGPL-3.0",
+    "keywords": [
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "ext-json": "*",
+        "netresearch/jsonmapper": "^4.0"
+    }
+}
