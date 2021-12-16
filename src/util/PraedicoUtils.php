@@ -1,7 +1,11 @@
 <?php
 
 
-class PradecioUtils {
+class PraedicoUtils {
+
+	public static function getBaseUrl($url) {
+		parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+	}
 
 	public static function str_ends_with($haystack, $needle) {
 		if (! function_exists('str_ends_with')) {

@@ -1,22 +1,32 @@
 <?php
 
+require_once __DIR__ . "/src/user/PraedicoUser.php";
+require_once __DIR__ . "/src/user/PraedicoUsers.php";
+
+use dde\PraedicoUser;
+use dde\PraedicoUsers;
+
 class HelloWorldExtension extends Minz_Extension {
+
+	/**
+	 * @var PraedicoUser
+	 */
+	private static $user;
+
 	public function init() {
+
+		$username = Minz_Session::param('currentUser', '_');
+		self::$user = PraedicoUsers::get($username);
+
 		Minz_View::appendStyle($this->getFileUrl('style.css', 'css'));
 		Minz_View::appendScript($this->getFileUrl('script.js', 'js'));
 
 		$this->registerTranslates();
 
-		$this->registerController('hello');
-		$this->registerController('index');
+		$this->registerController('praedico');
 		$this->registerViews();
 
-		// $this->registerHook('entry_before_insert',
-		//                     array('HelloWorldExtension', 'setHelloWorldContentHook'));
-		$this->registerHook('entry_before_display',
-		                    array('HelloWorldExtension', 'setHelloWorldTitleHook'));
-		$this->registerHook('feed_before_insert',
-		                    array('HelloWorldExtension', 'noMoreFeedsHook'));
+		$this->registerHook('entry_before_display', array('HelloWorldExtension', 'before'));
 	}
 
 	public function handleConfigureAction() {
@@ -28,12 +38,41 @@ class HelloWorldExtension extends Minz_Extension {
 		return $entry;
 	}
 
-	private static $hello_world_title_odd = false;
-	public static function setHelloWorldTitleHook($entry) {
-		if (self::$hello_world_title_odd) {
-			$entry->_title('Hello world!');
+	/**
+	 * @param $entry FreshRSS_Entry
+	 * @return mixed
+	 */
+	public static function before($entry) {
+		$result = self::$user->predict($entry);
+
+		if (is_null($result)) {
+			$info = "Unable to detect, missing data";
+			$detail = "?|?";
+		} else {
+			$pos = is_nan($result["probability"]["1"]) ? 0 : $result["probability"]["1"]* 100;
+			$neg = is_nan($result["probability"]["0"]) ? 0 : $result["probability"]["0"] * 100;
+			$detail = "" . round($pos, 2) . "%|" . round($neg, 2) . "%";
+
+			if ($result["label"] == 0) {
+				$info = "Detected as uninteresting (" . $detail . ")";
+			} else if ($result["label"] == 1) {
+				$info = "Detected as interesting (" . $detail. ")";
+			}
 		}
-		self::$hello_world_title_odd = !self::$hello_world_title_odd;
+
+
+
+		$base = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+			. "://$_SERVER[HTTP_HOST]" . strtok($_SERVER["REQUEST_URI"],'?');
+
+		$pos = $base . "?c=praedico&a=evaluate&evaluation=pos&id=" . $entry->id();
+		$neg = $base . "?c=praedico&a=evaluate&evaluation=neg&id=" . $entry->id();
+
+		$header = "<p>$info</p>";
+		$header = $header . "<a href='$pos'>Mark this article as interesting</a><br>";
+		$header = $header . "<a href='$neg'>Mark this article as uninteresting</a><br><br>";
+		$entry->_title($entry->title() . " (" . $detail . ")");
+		$entry->_content($header . $entry->content());
 		return $entry;
 	}
 

@@ -1,14 +1,21 @@
 {
     "name": "dde/praedico",
-    "description": "A free, self-hostable aggregator",
+    "description": "Classification for RSS feeds",
     "type": "project",
-    "homepage": "https://freshrss.org/",
+    "homepage": "https://github.com/jonasborn/praedico",
     "license": "AGPL-3.0",
     "keywords": [
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jonasborn/tntsearch.git"
+        }
     ],
     "require": {
         "php": ">=7.0.0",
         "ext-json": "*",
-        "netresearch/jsonmapper": "^4.0"
+        "netresearch/jsonmapper": "^4.0",
+        "teamtnt/tntsearch": "dev-master"
     }
 }
