@@ -29,7 +29,7 @@ class PraedicoUser {
 	public function train() {
 		$db = PraedicoDatabase::user($this->name);
 		$classifier = new TNTClassifier();
-		$evaluations = $db->query("SELECT * FROM evaluations");
+		$evaluations = $db->query("SELECT * FROM evaluations ORDER BY RANDOM()");
 		while($row = $evaluations->fetchArray()) {
 			if (!empty($row)) {
 				$entryDAO = FreshRSS_Factory::createEntryDao();
@@ -62,15 +62,6 @@ class PraedicoUser {
 		$q->bindValue(":id", $id);
 		$q->execute();
 	}
-
-	public function addNegative($id) {
-		$this->add($id, 0);
-	}
-
-	public function addPositive($id) {
-		$this->add($id, 1);
-	}
-
 
 
 

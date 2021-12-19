@@ -45,34 +45,39 @@ class HelloWorldExtension extends Minz_Extension {
 	public static function before($entry) {
 		$result = self::$user->predict($entry);
 
-		if (is_null($result)) {
-			$info = "Unable to detect, missing data";
-			$detail = "?|?";
-		} else {
-			$pos = is_nan($result["probability"]["1"]) ? 0 : $result["probability"]["1"]* 100;
-			$neg = is_nan($result["probability"]["0"]) ? 0 : $result["probability"]["0"] * 100;
-			$detail = "" . round($pos, 2) . "%|" . round($neg, 2) . "%";
-
-			if ($result["label"] == 0) {
-				$info = "Detected as uninteresting (" . $detail . ")";
-			} else if ($result["label"] == 1) {
-				$info = "Detected as interesting (" . $detail. ")";
-			}
-		}
-
-
-
 		$base = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
 			. "://$_SERVER[HTTP_HOST]" . strtok($_SERVER["REQUEST_URI"],'?');
 
-		$pos = $base . "?c=praedico&a=evaluate&evaluation=pos&id=" . $entry->id();
-		$neg = $base . "?c=praedico&a=evaluate&evaluation=neg&id=" . $entry->id();
+		$links = [];
+		$props = ["1" => 0, "2" => 0, "3" => 0, "4" => 0, "5" => 0];
+		$label = "0";
+		if (!is_null($result)) {
+			$props = $result["probability"];
+			$label = $result["label"];
+		}
 
-		$header = "<p>$info</p>";
-		$header = $header . "<a href='$pos'>Mark this article as interesting</a><br>";
-		$header = $header . "<a href='$neg'>Mark this article as uninteresting</a><br><br>";
-		$entry->_title($entry->title() . " (" . $detail . ")");
-		$entry->_content($header . $entry->content());
+		//if ($label < 2) return null;
+
+		$values = [];
+
+
+		for ($i = 1; $i <= 5; $i++) {
+			if (!isset($props[$i])) $props[$i] = 0;
+			$links[$i] = $base . "?c=praedico&a=evaluate&evaluation=$i&id=" . $entry->id();
+			$values[$i] =  number_format(round($props[$i], 2), 2, '.', '');
+		}
+
+		$overview = "";
+		$header = "<pre>Praedico\n";
+
+		for ($i = 1; $i <= 5; $i++) {
+			$overview = $overview . $values[$i] . "|";
+			$header  = $header . '<a href="' . $links[$i] . '">' . $values[$i] . "</a>|";
+		}
+		$header = substr($header, 0,  -1);
+
+		$entry->_title( " (" . $label . "/5) " . $entry->title());
+		$entry->_content( $header . "</pre><br><br>". $entry->content());
 		return $entry;
 	}
 

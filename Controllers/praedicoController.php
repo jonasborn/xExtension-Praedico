@@ -30,15 +30,11 @@ class FreshExtension_praedico_Controller extends Minz_ActionController {
 
 		$user = \dde\PraedicoUsers::get($username);
 
-		if ($evaluation == "pos") {
-			$user->addPositive($id);
-			echo "Pos";
-		} else if ($evaluation == "neg") {
-			$user->addNegative($id);
-			echo "Neg";
-		} else {
+		if (!is_numeric($evaluation) || $evaluation < 0 || $evaluation > 5) {
 			Minz_Error::error(400);
 		}
+
+		$user->add($id, $evaluation);
 
 		$user->train();
 
