@@ -27,6 +27,7 @@ class HelloWorldExtension extends Minz_Extension {
 		$this->registerViews();
 
 		$this->registerHook('entry_before_display', array('HelloWorldExtension', 'before'));
+		$this->registerHook('entry_before_insert', array("HelloWorldExtension", "insert"));
 	}
 
 	public function handleConfigureAction() {
@@ -79,6 +80,20 @@ class HelloWorldExtension extends Minz_Extension {
 		$entry->_title( " (" . $label . "/5) " . $entry->title());
 		$entry->_content( $header . "</pre><br><br>". $entry->content());
 		return $entry;
+	}
+
+	/**
+	 * @param $entry FreshRSS_Entry
+	 */
+	public static function insert($entry) {
+		$link = PraedicoUtils::extractLink($entry->content());
+		if (is_null($link)) {
+			return $entry;
+		} else {
+			$extracted = PraedicoUtils::extractContent($link);
+			$entry->_content($extracted["content"]);
+			return $entry;
+		}
 	}
 
 	public static function noMoreFeedsHook($feed) {

@@ -16,6 +16,7 @@
         "php": ">=7.0.0",
         "ext-json": "*",
         "netresearch/jsonmapper": "^4.0",
-        "teamtnt/tntsearch": "dev-master"
+        "teamtnt/tntsearch": "dev-master",
+        "fivefilters/readability.php": "^2.1"
     }
 }
