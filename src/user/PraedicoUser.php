@@ -8,9 +8,11 @@ require_once __DIR__ . "/../database/PraedicoDatabase.php";
 use DateTime;
 use FreshRSS_Entry;
 use FreshRSS_Factory;
+use PraedicoUtils;
 use TeamTNT\TNTSearch\Classifier\TNTClassifier;
 
 class PraedicoUser {
+
 
 	public $name;
 
@@ -23,20 +25,21 @@ class PraedicoUser {
 		if (!file_exists($dataset)) return null;
 		$classifier = new TNTClassifier();
 		$classifier->load($dataset);
-		return $classifier->predict($item->content());
+		//file_put_contents(__DIR__ . "/hallo.txt", file_get_contents(__DIR__ . "/hallo.txt") . "\n" . $content);
+		return $classifier->predict(PraedicoUtils::clean($item->content()));
 	}
 
 	public function train() {
 		$db = PraedicoDatabase::user($this->name);
 		$classifier = new TNTClassifier();
-		$evaluations = $db->query("SELECT * FROM evaluations ORDER BY RANDOM()");
+		$evaluations = $db->query("SELECT * FROM evaluations");
 		while($row = $evaluations->fetchArray()) {
 			if (!empty($row)) {
 				$entryDAO = FreshRSS_Factory::createEntryDao();
 				$entries = $entryDAO->listByIds([$row["id"]]);
 				/** @var FreshRSS_Entry $entry */
 				foreach ($entries as $entry) {
-					$classifier->learn($entry->content(), $row["class"]);
+					$classifier->learn(PraedicoUtils::clean($entry->content()), $row["class"]);
 				}
 			}
 		}

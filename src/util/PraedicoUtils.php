@@ -3,6 +3,11 @@
 
 class PraedicoUtils {
 
+	static $replacements = [
+		'/<a.*<\/a>/m',
+		'/<img.*<\/img>/m'
+	];
+
 	public static function getBaseUrl($url) {
 		parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 	}
@@ -17,6 +22,17 @@ class PraedicoUtils {
 		} else {
 			return str_ends_with($haystack, $needle);
 		}
+	}
+
+
+
+	public static function clean($content) {
+		foreach (self::$replacements as $replacement) {
+			$content = preg_replace($replacement, "", $content);
+		}
+		$content = strip_tags($content);
+		$content = trim($content);
+		return $content;
 	}
 
 }
